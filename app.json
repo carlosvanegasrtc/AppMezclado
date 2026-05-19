@@ -1,0 +1,60 @@
+{
+  "expo": {
+    "name": "Rototec Mezcla",
+    "slug": "appmezcla",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0c4a6e"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "gt.com.rototec.mezcla",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Necesitamos la cámara para escanear códigos de barras de los sacos de mezcla.",
+        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a la galería para adjuntar fotos a las incidencias."
+      }
+    },
+    "android": {
+      "package": "gt.com.rototec.mezcla",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#0c4a6e"
+      },
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "VIBRATE",
+        "INTERNET"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/images/icon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite escanear códigos de barras de los sacos de mezcla."
+        }
+      ],
+      "expo-secure-store",
+      "expo-sqlite",
+      "./plugins/withRototecAndroid"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    }
+  }
+}
