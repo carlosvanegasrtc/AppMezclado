@@ -29,6 +29,7 @@ import type {
   RegistrarSacoResponse,
   ResumenOrdenMezcla,
   SacoMezcla,
+  TipoIncidenciaMezcla,
   TurnoActivoEmpleado,
 } from '@/types/mezcla';
 import type { ApiResponse } from '@/types/api';
@@ -159,6 +160,15 @@ class MezclaService {
   // ═══════════════════════════════════════════════════════
   // INCIDENCIAS
   // ═══════════════════════════════════════════════════════
+
+  /** GET /tipos-incidencia — catálogo de tipos de incidencia de mezcla. */
+  async getTiposIncidencia(): Promise<TipoIncidenciaMezcla[]> {
+    const res = await requestOk<TipoIncidenciaMezcla[]>({
+      method: 'GET',
+      url: this.urlFor('tipos-incidencia'),
+    });
+    return ((res as any).data ?? []) as TipoIncidenciaMezcla[];
+  }
 
   /** POST /registrar-incidencia. */
   async registrarIncidencia(payload: RegistrarIncidenciaPayload): Promise<void> {

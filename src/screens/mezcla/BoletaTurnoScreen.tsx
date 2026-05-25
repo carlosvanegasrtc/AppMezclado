@@ -422,6 +422,10 @@ function PreviewCard({
 function BoletaConsolidadaCard({ boleta }: { boleta: BoletaMezcla }) {
   const cumpl = Math.round(Number(boleta.PorcentajeCumplimiento) || 0);
   const inconclusa = boleta.Estado === 'INCONCLUSA';
+  const minutos = boleta.MinutosTrabajados ?? 0;
+  const horas = Math.floor(minutos / 60);
+  const mins = minutos % 60;
+  const tiempoLaborado = minutos > 0 ? `${horas}h ${mins}min` : '—';
 
   return (
     <Card style={styles.boletaCard} radius={Radius.lg}>
@@ -441,24 +445,34 @@ function BoletaConsolidadaCard({ boleta }: { boleta: BoletaMezcla }) {
       </View>
 
       {inconclusa && (
-        <View style={[styles.bannerInconclusa]}>
+        <View style={styles.bannerInconclusa}>
           <AlertTriangle size={18} color={Colors.amber[700]} strokeWidth={2.4} />
           <Text style={styles.bannerInconclusaText}>
-            Boleta INCONCLUSA: el operario no registró marcaje de salida en el biométrico.
+            Boleta INCONCLUSA: no se registró marcaje de salida en el biométrico.
           </Text>
         </View>
       )}
 
-      {/* Encabezado */}
-      <Section title="Operario">
+      {/* Datos del empleado y turno */}
+      <Section title="Empleado y turno">
         <Row label="Empleado" value={boleta.NombreEmpleado ?? '—'} />
-        <Row label="Código bio" value={String(boleta.CodigoEmpleadoBio ?? '—')} />
+        <Row label="ID" value={String(boleta.IdEmpleado ?? '—')} />
+        {boleta.CodigoEmpleadoBio != null && (
+          <Row label="Código bio" value={String(boleta.CodigoEmpleadoBio)} />
+        )}
         <Row label="Orden" value={boleta.NumeroOrdenMezcla ?? '—'} />
-        <Row label="Turno" value={`${boleta.NumeroTurno}${boleta.TipoTurno ? ` · ${boleta.TipoTurno}` : ''}`} />
-        <Row label="Fecha turno" value={formatFecha(boleta.FechaTurno)} />
+        <Row
+          label="Turno"
+          value={`N° ${boleta.NumeroTurno}${boleta.TipoTurno ? ` · ${boleta.TipoTurno}` : ''}`}
+        />
+        <Row label="Fecha" value={formatFecha(boleta.FechaTurno)} />
+        <Row
+          label="Horario planificado"
+          value={`${boleta.HoraInicioPlan?.slice(11, 16) ?? '—'} – ${boleta.HoraFinPlan?.slice(11, 16) ?? '—'}`}
+        />
       </Section>
 
-      {/* Producción */}
+      {/* Producción: sacos y kilos de fórmula */}
       <Section title="Producción">
         <Row label="Kg planificados" value={`${Number(boleta.KgPlanificados ?? 0).toFixed(0)} kg`} />
         <Row
@@ -466,18 +480,17 @@ function BoletaConsolidadaCard({ boleta }: { boleta: BoletaMezcla }) {
           value={`${Number(boleta.KgProducidos ?? 0).toFixed(0)} kg`}
           accent={Colors.sky[700]}
         />
-        <Row label="Desviación" value={`${Number(boleta.DesviacionKg ?? 0).toFixed(0)} kg`} />
-        <Row label="Cumplimiento" value={`${cumpl}%`} accent={cumpl >= 100 ? Colors.success : Colors.warning} />
-        <Row label="Fórmulas (plan / hechas)" value={`${boleta.NumFormulasPlanificadas} / ${boleta.NumFormulasProducidas}`} />
+        <Row
+          label="Cumplimiento"
+          value={`${cumpl}%`}
+          accent={cumpl >= 100 ? Colors.success : Colors.warning}
+        />
         <Row label="Sacos producidos" value={String(boleta.SacosProducidos)} />
-        <Row label="Sacos recibidos en bodega" value={String(boleta.SacosRecibidosBodega)} />
-        {boleta.PesoPromedioSacoKg != null && (
-          <Row label="Peso promedio saco" value={`${Number(boleta.PesoPromedioSacoKg).toFixed(2)} kg`} />
-        )}
-        {boleta.IdMotivoCierre && (
+        <Row label="Sacos recibidos bodega" value={String(boleta.SacosRecibidosBodega)} />
+        {boleta.IdMotivoCierre != null && (
           <Row
             label="Motivo cierre"
-            value={`${boleta.MotivoCierreCodigo}${
+            value={`${boleta.MotivoCierreCodigo ?? '—'}${
               boleta.MotivoJustificado != null
                 ? ` (${boleta.MotivoJustificado ? 'justificado' : 'no justificado'})`
                 : ''
@@ -487,41 +500,35 @@ function BoletaConsolidadaCard({ boleta }: { boleta: BoletaMezcla }) {
         {boleta.NumIncidencias > 0 && (
           <Row
             label="Incidencias"
-            value={`${boleta.NumIncidencias} · ${Number(boleta.KgNoProducidosIncidencias ?? 0).toFixed(0)} kg justif.`}
+            value={`${boleta.NumIncidencias} registradas · ${Number(boleta.KgNoProducidosIncidencias ?? 0).toFixed(0)} kg justif.`}
           />
         )}
       </Section>
 
-      {/* Biométrico */}
-      <Section title="Biométrico">
-        <Row label="Entrada" value={boleta.HoraEntradaBio ? formatFechaHora(boleta.HoraEntradaBio) : '— sin marcaje —'} />
-        <Row label="Salida" value={boleta.HoraSalidaBio ? formatFechaHora(boleta.HoraSalidaBio) : '— sin marcaje —'} />
-        {boleta.MinutosTarde != null && (
-          <Row label="Minutos tarde" value={`${boleta.MinutosTarde} min (${boleta.MinutosTardePenalizables ?? 0} penaliz.)`} />
-        )}
-        {boleta.MinutosSalidaTemprana != null && (
-          <Row
-            label="Salida temprana"
-            value={`${boleta.MinutosSalidaTemprana} min (${boleta.MinutosSalidaTempranaPenalizables ?? 0} penaliz.)`}
-          />
-        )}
-        {boleta.MinutosTrabajados != null && (
-          <Row label="Minutos trabajados" value={`${boleta.MinutosTrabajados} min`} />
-        )}
-        <Row label="Paga extras" value={boleta.PagaExtras ? 'Sí' : 'No'} />
-        {boleta.ObservacionesBio && (
-          <Row label="Obs. biométrico" value={boleta.ObservacionesBio} />
-        )}
+      {/* Tiempo laborado */}
+      <Section title="Tiempo laborado">
+        <Row
+          label="Entrada"
+          value={boleta.HoraEntradaBio ? formatFechaHora(boleta.HoraEntradaBio) : '— sin marcaje —'}
+        />
+        <Row
+          label="Salida"
+          value={boleta.HoraSalidaBio ? formatFechaHora(boleta.HoraSalidaBio) : '— sin marcaje —'}
+        />
+        <Row label="Tiempo trabajado" value={tiempoLaborado} accent={Colors.sky[700]} />
+        {boleta.ObservacionesBio ? (
+          <Row label="Observación" value={boleta.ObservacionesBio} />
+        ) : null}
       </Section>
 
-      {boleta.Observaciones && (
-        <Section title="Observaciones del cierre">
+      {boleta.Observaciones ? (
+        <Section title="Observaciones">
           <Text style={styles.observ}>{boleta.Observaciones}</Text>
         </Section>
-      )}
+      ) : null}
 
       <Text style={styles.boletaFooter}>
-        Generada por {boleta.UsuarioCierre ?? 'sistema'} el {formatFechaHora(boleta.FechaCierre)}
+        Generada por {boleta.UsuarioCierre ?? 'sistema'} · {formatFechaHora(boleta.FechaCierre)}
       </Text>
     </Card>
   );

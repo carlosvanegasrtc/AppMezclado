@@ -20,6 +20,7 @@ import type {
   RegistrarSacoResponse,
   ResumenOrdenMezcla,
   SacoMezcla,
+  TipoIncidenciaMezcla,
   TurnoActivoEmpleado,
 } from '@/types/mezcla';
 import type { SolicitudInsumos } from '@/types/insumos';
@@ -44,6 +45,7 @@ export const mezclaKeys = {
   cumplimientoBrutoNeto: (idEmpleado?: number, fechaInicio?: string, fechaFin?: string) =>
     ['mezcla', 'cumplimiento-bn', idEmpleado ?? null, fechaInicio ?? null, fechaFin ?? null] as const,
   motivosCierre: () => ['mezcla', 'motivos-cierre'] as const,
+  tiposIncidencia: () => ['mezcla', 'tipos-incidencia'] as const,
   turnosActivos: (idEmpleado: number | null | undefined, fecha?: string) =>
     ['mezcla', 'turnos-activos', idEmpleado ?? null, fecha ?? null] as const,
   boletaPreview: (idTurno: number | null | undefined) =>
@@ -150,6 +152,15 @@ export function useMotivosCierre() {
     queryKey: mezclaKeys.motivosCierre(),
     queryFn: () => mezclaService.obtenerMotivosCierre(),
     staleTime: 5 * 60_000,
+  });
+}
+
+/** Catálogo de tipos de incidencia de mezcla. */
+export function useTiposIncidencia() {
+  return useQuery<TipoIncidenciaMezcla[]>({
+    queryKey: mezclaKeys.tiposIncidencia(),
+    queryFn: () => mezclaService.getTiposIncidencia(),
+    staleTime: 10 * 60_000,
   });
 }
 

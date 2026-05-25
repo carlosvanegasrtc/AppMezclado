@@ -22,7 +22,7 @@ export function SettingsScreen() {
         <AppBar
           title="Configuración"
           transparent
-          onMenu={() => (navigation as any).getParent()?.openDrawer?.()}
+          onMenu={() => (navigation as any).openDrawer?.()}
         />
       </GradientHeader>
 

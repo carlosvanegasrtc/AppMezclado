@@ -177,12 +177,22 @@ export interface CumplimientoBrutoNeto {
   motivos: MotivoTopRow[];
 }
 
+export interface TipoIncidenciaMezcla {
+  IdTipoIncidencia: number;
+  Codigo: string;
+  Descripcion: string;
+  Justificado: boolean;
+  Activo: boolean;
+  Orden: number;
+}
+
 export interface RegistrarIncidenciaPayload {
   idEmpleado: number;
   idProduccion: number;
   fechaTurno: string;          // 'YYYY-MM-DD'
   codigoFormula: string;
   descripcion: string;
+  idTipoIncidencia?: number;
 }
 
 // ── Boleta de cierre de turno (Mezcla) ─────────────────────────
