@@ -42,13 +42,14 @@ export interface ResumenOrdenMezcla {
 }
 
 // ── Empleado asignado a una orden ───────────────────────
+// Shape real del endpoint GET /obtener-empleados-asignados/:id
 export interface EmpleadoAsignado {
-  IdEmpleado: number;
-  CodigoFactorh?: string | null;
-  Nombre: string;
-  Puesto?: string | null;
+  id: number;
+  nombre: string;
+  apellido: string;
   RolEnTurno?: string | null;
-  Departamento?: string | null;
+  codigo?: string | null;
+  puesto_fh?: string | null;
 }
 
 // ── Saco producido ──────────────────────────────────────

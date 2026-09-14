@@ -124,7 +124,7 @@ export function CompletarOrdenScreen() {
                 value={`${kgProd.toFixed(0)} kg`}
                 accent={kgProd >= kgPlan ? Colors.success : Colors.warning}
               />
-              <KpiRow label="Sacos" value={String(sacos)} />
+              <KpiRow label="Super sacos" value={String(sacos)} />
             </View>
 
             {requiereMotivo && (
@@ -221,7 +221,7 @@ function KpiRow({ label, value, accent }: { label: string; value: string; accent
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16 },
+  body: { padding: 16, paddingBottom: 100 },
   heading: { fontSize: 18, fontWeight: '900', color: Colors.foreground, letterSpacing: 0.4 },
   subtitle: { fontSize: 12, color: Colors.muted, marginTop: 4 },
   kpiBox: {

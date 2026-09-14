@@ -89,6 +89,9 @@ export function OrdenDetalleScreen() {
 
   // Bloquear producción si bodega aún no despachó los insumos
   const esperandoInsumos = !!solicitud && solicitud.Estado === 'PENDIENTE';
+  // Bodega despachó pero el operario aún no confirmó recepción
+  const esperandoConfirmacion = !!solicitud && solicitud.Estado === 'DESPACHADO';
+  const bloqueadoProduccion = finalizada || esperandoInsumos || esperandoConfirmacion;
 
   const onRefresh = useCallback(() => refetch(), [refetch]);
 
@@ -121,37 +124,64 @@ export function OrdenDetalleScreen() {
 
             {/* ── Hero card ── */}
             <Card style={styles.heroCard} radius={Radius.lg}>
-              <View style={styles.heroRow}>
-                <Text style={styles.heroNumero}>{orden.NumeroOrdenMezcla}</Text>
-                <StatusBadge estado={orden.Estado as any} />
+
+              {/* Fórmula — protagonista */}
+              <View style={styles.heroFormulaRow}>
+                <View style={styles.heroFormulaIcon}>
+                  <FlaskConical size={24} color={Colors.sky[600]} strokeWidth={2.2} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.heroFormulaCodigo} numberOfLines={1}>
+                    {orden.CodigoFormula}
+                  </Text>
+                  {!!orden.DescripcionFormula && (
+                    <Text style={styles.heroFormulaDesc} numberOfLines={2}>
+                      {orden.DescripcionFormula}
+                    </Text>
+                  )}
+                </View>
               </View>
-              <Text style={styles.heroFormula} numberOfLines={2}>
-                {orden.CodigoFormula}
-                {orden.DescripcionFormula ? ` · ${orden.DescripcionFormula}` : ''}
-              </Text>
-              {!!orden.FechaProduccion && (
-                <Text style={styles.heroMeta}>
-                  {formatFecha(orden.FechaProduccion)}
+
+              {/* Orden + estado + fecha — secundario */}
+              <View style={styles.heroMeta}>
+                <Text style={styles.heroMetaTxt} numberOfLines={1}>
+                  {orden.NumeroOrdenMezcla}
+                  {orden.FechaProduccion ? `  ·  ${formatFecha(orden.FechaProduccion)}` : ''}
                   {orden.HoraInicioTurno && orden.HoraFinTurno
-                    ? `   ·   Turno ${formatHora(orden.HoraInicioTurno)} – ${formatHora(orden.HoraFinTurno)}`
+                    ? `  ·  ${formatHora(orden.HoraInicioTurno)}–${formatHora(orden.HoraFinTurno)}`
                     : ''}
                 </Text>
-              )}
+                <StatusBadge estado={orden.Estado as any} />
+              </View>
 
-              <View style={styles.kpiGrid}>
-                <Kpi label="Planificado" value={`${(orden.KgPlanificados ?? 0).toFixed(0)} kg`} />
+              {/* Kg planificados — dato central */}
+              <View style={styles.planBox}>
+                <Text style={styles.planLbl}>META DE PRODUCCIÓN</Text>
+                <View style={styles.planRow}>
+                  <Text style={styles.planVal}>
+                    {(orden.KgPlanificados ?? 0).toFixed(1)}
+                  </Text>
+                  <Text style={styles.planUnit}>kg</Text>
+                </View>
+              </View>
+
+              {/* Producido / Sacos / Cumplimiento */}
+              <View style={styles.kpiRow}>
                 <Kpi
                   label="Producido"
-                  value={`${(orden.KgProducidos ?? 0).toFixed(0)} kg`}
+                  value={`${(orden.KgProducidos ?? 0).toFixed(1)} kg`}
                   accent={Colors.sky[700]}
                 />
-                <Kpi label="Sacos" value={String(orden.TotalSacos ?? 0)} />
+                <View style={styles.kpiDivider} />
+                <Kpi label="Super sacos" value={String(orden.TotalSacos ?? 0)} />
+                <View style={styles.kpiDivider} />
                 <Kpi
                   label="Cumplimiento"
                   value={`${cumpl}%`}
-                  accent={cumpl >= 100 ? Colors.success : Colors.warning}
+                  accent={cumpl >= 100 ? Colors.success : cumpl >= 60 ? Colors.warning : Colors.error}
                 />
               </View>
+
             </Card>
 
             {/* ── Componentes de la fórmula ── */}
@@ -174,21 +204,24 @@ export function OrdenDetalleScreen() {
             {!!empleados?.length && (
               <Card style={{ marginTop: 12 }} radius={Radius.lg}>
                 <Text style={styles.sectionTitle}>Empleados del turno</Text>
-                {empleados.map((e) => (
-                  <View key={e.IdEmpleado} style={styles.empRow}>
-                    <View style={styles.empAvatar}>
-                      <Text style={styles.empAvatarText}>
-                        {(e.Nombre || '?').slice(0, 1).toUpperCase()}
-                      </Text>
+                {empleados.map((e) => {
+                  const nombreCompleto = `${e.nombre ?? ''} ${e.apellido ?? ''}`.trim();
+                  return (
+                    <View key={e.id} style={styles.empRow}>
+                      <View style={styles.empAvatar}>
+                        <Text style={styles.empAvatarText}>
+                          {(e.nombre || '?').slice(0, 1).toUpperCase()}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.empName} numberOfLines={1}>{nombreCompleto}</Text>
+                        <Text style={styles.empMeta} numberOfLines={1}>
+                          {[e.RolEnTurno, e.puesto_fh, e.codigo].filter(Boolean).join(' · ')}
+                        </Text>
+                      </View>
                     </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.empName} numberOfLines={1}>{e.Nombre}</Text>
-                      <Text style={styles.empMeta} numberOfLines={1}>
-                        {[e.RolEnTurno, e.Puesto, e.CodigoFactorh].filter(Boolean).join(' · ')}
-                      </Text>
-                    </View>
-                  </View>
-                ))}
+                  );
+                })}
               </Card>
             )}
 
@@ -207,98 +240,110 @@ export function OrdenDetalleScreen() {
 
             {/* ── Acciones ── */}
             <View style={styles.actions}>
-              <AppButton
-                label="Registrar saco"
-                onPress={() =>
-                  navigation.navigate('RegistrarSaco', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
-                }
-                variant="primary"
-                size="lg"
-                fullWidth
-                disabled={finalizada || esperandoInsumos}
-                leftIcon={<Package size={18} color={Colors.white} strokeWidth={2.4} />}
-              />
-              <View style={{ height: 10 }} />
-              <AppButton
-                label="Reportar incidencia"
-                onPress={() =>
-                  navigation.navigate('Incidencia', {
-                    idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL,
-                    codigoFormula: orden.CodigoFormula,
-                  })
-                }
-                variant="secondary"
-                size="md"
-                fullWidth
-                leftIcon={<AlertTriangle size={18} color={Colors.amber[700]} strokeWidth={2.4} />}
-              />
-              <View style={{ height: 10 }} />
-              <AppButton
-                label={finalizada ? `Orden ${ESTADO_MEZCLA_LABEL[estado] ?? estado}` : 'Completar orden'}
-                onPress={() =>
-                  navigation.navigate('CompletarOrden', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
-                }
-                variant="success"
-                size="md"
-                fullWidth
-                disabled={finalizada || esperandoInsumos}
-                leftIcon={<CheckCircle2 size={18} color={Colors.white} strokeWidth={2.4} />}
-              />
-              {!!solicitud && (
+
+              {/* PASO 1 — Confirmar recepción (bodega ya despachó, pendiente de confirmar) */}
+              {esperandoConfirmacion && (
+                <AppButton
+                  label="Confirmar recepción de insumos"
+                  onPress={() =>
+                    navigation.navigate('Insumos', { idSolicitud: solicitud?.IdSolicitud })
+                  }
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  leftIcon={<Truck size={18} color={Colors.white} strokeWidth={2.4} />}
+                />
+              )}
+
+              {/* PASO 2 — Registrar super saco (producción activa) */}
+              {!finalizada && (
+                <AppButton
+                  label="Registrar super saco"
+                  onPress={() =>
+                    navigation.navigate('RegistrarSaco', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
+                  }
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  disabled={bloqueadoProduccion}
+                  leftIcon={<Package size={18} color={Colors.white} strokeWidth={2.4} />}
+                />
+              )}
+
+              {/* PASO 3 — Completar orden (cuando terminó la producción del turno) */}
+              {!finalizada && (
+                <AppButton
+                  label="Completar orden"
+                  onPress={() =>
+                    navigation.navigate('CompletarOrden', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
+                  }
+                  variant="success"
+                  size="md"
+                  fullWidth
+                  disabled={bloqueadoProduccion}
+                  leftIcon={<CheckCircle2 size={18} color={Colors.white} strokeWidth={2.4} />}
+                />
+              )}
+
+              {/* Orden finalizada — estado y cierre de turno */}
+              {finalizada && (
                 <>
-                  <View style={{ height: 10 }} />
+                  <View style={styles.estadoFinal}>
+                    <CheckCircle2 size={18} color={Colors.success} strokeWidth={2.4} />
+                    <Text style={styles.estadoFinalTxt}>
+                      Orden {ESTADO_MEZCLA_LABEL[estado] ?? estado}
+                    </Text>
+                  </View>
                   <AppButton
-                    label={
-                      solicitud.Estado === 'DESPACHADO'
-                        ? 'Confirmar recepción de insumos'
-                        : 'Ver insumos de materia prima'
-                    }
-                    onPress={() =>
-                      navigation.navigate('Insumos', { idSolicitud: solicitud.IdSolicitud })
-                    }
-                    variant={solicitud.Estado === 'DESPACHADO' ? 'primary' : 'secondary'}
+                    label="Cerrar turno con boleta"
+                    onPress={() => navigation.navigate('BoletaTurno', { idEmpleado: session?.idEmpleado })}
+                    variant="primary"
                     size="md"
                     fullWidth
-                    leftIcon={
-                      <Truck
-                        size={18}
-                        color={solicitud.Estado === 'DESPACHADO' ? Colors.white : Colors.sky[700]}
-                        strokeWidth={2.4}
-                      />
-                    }
+                    leftIcon={<Receipt size={18} color={Colors.white} strokeWidth={2.4} />}
                   />
                 </>
               )}
-            </View>
 
-            {/* ── Cierre de turno ── */}
-            <Card style={{ marginTop: 12 }} radius={Radius.lg}>
-              <View style={styles.secHeader}>
-                <Receipt size={18} color={Colors.muted} strokeWidth={2.2} />
-                <Text style={styles.sectionTitle}>Cierre de turno</Text>
+              {/* Acciones secundarias — siempre disponibles, poco prominentes */}
+              <View style={styles.secundarias}>
+                <AppButton
+                  label="Reportar incidencia"
+                  onPress={() =>
+                    navigation.navigate('Incidencia', {
+                      idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL,
+                      codigoFormula: orden.CodigoFormula,
+                    })
+                  }
+                  variant="secondary"
+                  size="sm"
+                  fullWidth
+                  leftIcon={<AlertTriangle size={15} color={Colors.amber[700]} strokeWidth={2.4} />}
+                />
+                {!!solicitud && !esperandoConfirmacion && (
+                  <AppButton
+                    label="Ver insumos de materia prima"
+                    onPress={() =>
+                      navigation.navigate('Insumos', { idSolicitud: solicitud.IdSolicitud })
+                    }
+                    variant="secondary"
+                    size="sm"
+                    fullWidth
+                    leftIcon={<Truck size={15} color={Colors.slate[500]} strokeWidth={2.4} />}
+                  />
+                )}
               </View>
-              <Text style={styles.placeholder}>
-                Genera la boleta consolidada del turno: producción real, sacos, biométrico y motivo de cierre.
-              </Text>
-              <View style={{ height: 10 }} />
-              <AppButton
-                label="Cerrar turno con boleta"
-                onPress={() => navigation.navigate('BoletaTurno', { idEmpleado: session?.idEmpleado })}
-                variant="primary"
-                size="md"
-                fullWidth
-                leftIcon={<Receipt size={18} color={Colors.white} strokeWidth={2.4} />}
-              />
-            </Card>
+
+            </View>
 
             {/* ── Sacos ── */}
             <Card style={{ marginTop: 12 }} radius={Radius.lg}>
               <View style={styles.secHeader}>
                 <Package size={18} color={Colors.muted} strokeWidth={2.2} />
-                <Text style={styles.sectionTitle}>Sacos del turno</Text>
+                <Text style={styles.sectionTitle}>Super sacos del turno</Text>
               </View>
               <Text style={styles.placeholder}>
-                Próximamente: lista de sacos registrados, peso individual y trazabilidad a bodega.
+                Próximamente: lista de super sacos registrados, peso individual y trazabilidad a bodega.
               </Text>
             </Card>
 
@@ -373,7 +418,7 @@ function ComponentesTable({ componentes }: { componentes: ComponenteFormula[] })
 function Kpi({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
     <View style={styles.kpi}>
-      <Text style={[styles.kpiVal, accent && { color: accent }]}>{value}</Text>
+      <Text style={[styles.kpiVal, accent ? { color: accent } : null]}>{value}</Text>
       <Text style={styles.kpiLbl}>{label}</Text>
     </View>
   );
@@ -381,30 +426,104 @@ function Kpi({ label, value, accent }: { label: string; value: string; accent?: 
 
 // ── Styles ──────────────────────────────────────────────
 const styles = StyleSheet.create({
-  body: { padding: 16, paddingBottom: 32 },
-  heroCard: { gap: 6 },
-  heroRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  heroNumero: { fontSize: 18, fontWeight: '900', color: Colors.foreground, letterSpacing: 0.4 },
-  heroFormula: { fontSize: 13, color: Colors.foreground, marginTop: 2, fontWeight: '600' },
-  heroMeta: { fontSize: 11, color: Colors.muted, marginTop: 4 },
-  kpiGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 14,
-    backgroundColor: Colors.slate[50],
-    borderRadius: Radius.md,
-    padding: 12,
-    gap: 12,
+  body: { padding: 16, paddingBottom: 100 },
+
+  // Hero card
+  heroCard: { gap: 12 },
+
+  // Fórmula — protagonista
+  heroFormulaRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  heroFormulaIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: Colors.sky[50],
+    borderWidth: 1,
+    borderColor: Colors.sky[100],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  kpi: { width: '46%' },
-  kpiVal: { fontSize: 18, fontWeight: '900', color: Colors.foreground },
+  heroFormulaCodigo: {
+    fontSize: 22,
+    fontWeight: '900',
+    color: Colors.sky[700],
+    letterSpacing: 0.2,
+  },
+  heroFormulaDesc: {
+    fontSize: 12,
+    color: Colors.slate[500],
+    fontWeight: '500',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+
+  // Orden + estado — secundario
+  heroMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  heroMetaTxt: {
+    fontSize: 11,
+    color: Colors.muted,
+    fontWeight: '600',
+    flex: 1,
+  },
+
+  // Kg planificados — protagonista numérico
+  planBox: {
+    backgroundColor: Colors.sky[50],
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.sky[100],
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  planLbl: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: Colors.sky[500],
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  planRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 6 },
+  planVal: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: Colors.sky[800],
+    lineHeight: 46,
+    letterSpacing: -1,
+  },
+  planUnit: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.sky[600],
+    marginBottom: 4,
+  },
+
+  // Métricas secundarias
+  kpiRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 4,
+  },
+  kpiDivider: {
+    width: 1,
+    height: 32,
+    backgroundColor: Colors.slate[200],
+    marginHorizontal: 16,
+  },
+  kpi: { flex: 1 },
+  kpiVal: { fontSize: 16, fontWeight: '900', color: Colors.foreground },
   kpiLbl: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
     color: Colors.muted,
     letterSpacing: 0.6,
     textTransform: 'uppercase',
-    marginTop: 2,
+    marginTop: 3,
   },
   secHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
   sectionTitle: {
@@ -426,7 +545,28 @@ const styles = StyleSheet.create({
   empAvatarText: { color: Colors.sky[800], fontWeight: '900' },
   empName: { fontSize: 13, fontWeight: '700', color: Colors.foreground },
   empMeta: { fontSize: 11, color: Colors.muted, marginTop: 2 },
-  actions: { marginTop: 14 },
+  actions: { marginTop: 14, gap: 10 },
+  estadoFinal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: Colors.slate[100],
+    borderRadius: Radius.md,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  estadoFinalTxt: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: Colors.success,
+  },
+  secundarias: {
+    marginTop: 4,
+    gap: 8,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: Colors.slate[200],
+  },
   placeholder: { fontSize: 12, color: Colors.muted, marginTop: 4, lineHeight: 18 },
   bannerEspera: {
     flexDirection: 'row',

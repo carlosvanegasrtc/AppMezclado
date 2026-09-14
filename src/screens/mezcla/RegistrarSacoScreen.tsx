@@ -61,7 +61,7 @@ export function RegistrarSacoScreen() {
   const registrar = useRegistrarSaco();
   const printer   = useTsplPrinter();
 
-  const [pesoStr,      setPesoStr]      = useState('');
+  const [pesoStr,      setPesoStr]      = useState('1000');
   const [sheetVisible, setSheetVisible] = useState(false);
 
   const printerReady       = printer.status !== 'none';
@@ -129,7 +129,7 @@ export function RegistrarSacoScreen() {
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <Screen edges={['top']} bg={Colors.slate[50]}>
-      <AppBar title="Registrar saco" onBack={() => navigation.goBack()} />
+      <AppBar title="Registrar super saco" onBack={() => navigation.goBack()} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -149,7 +149,7 @@ export function RegistrarSacoScreen() {
             <View style={styles.noPrinterBanner}>
               <AlertTriangle size={18} color="#92400e" strokeWidth={2} />
               <Text style={styles.noPrinterText}>
-                Vincula una impresora para poder registrar sacos.
+                Vincula una impresora para poder registrar super sacos.
                 Toca el indicador de arriba para seleccionarla.
               </Text>
             </View>
@@ -168,20 +168,24 @@ export function RegistrarSacoScreen() {
           {/* ─ 3. Formulario (deshabilitado si no hay impresora) ─── */}
           <View style={[styles.formWrap, !printerReady && styles.formDisabled]}>
             <Card radius={Radius.lg}>
-              <Text style={styles.label}>Peso del saco (kg)</Text>
+              <Text style={styles.label}>Peso del super saco (kg)</Text>
               <TextInput
                 value={pesoStr}
                 onChangeText={(v) => setPesoStr(v.replace(/[^\d.,]/g, ''))}
-                placeholder="0.00"
+                placeholder="1000"
                 placeholderTextColor={Colors.hint}
                 keyboardType="decimal-pad"
                 style={styles.pesoInput}
                 editable={printerReady}
-                autoFocus={printerReady}
+                autoFocus={false}
+                selectTextOnFocus
               />
-              <View style={{ height: 18 }} />
+              <Text style={styles.defaultHint}>
+                Peso estándar: 1 000 kg — modifica si es necesario antes de registrar.
+              </Text>
+              <View style={{ height: 10 }} />
               <AppButton
-                label={printerDisconnected ? 'Guardar y reconectar' : 'Guardar saco'}
+                label={printerDisconnected ? 'Guardar y reconectar' : 'Guardar super saco'}
                 onPress={onSubmit}
                 disabled={!canSubmit}
                 loading={registrar.isPending}
@@ -198,8 +202,8 @@ export function RegistrarSacoScreen() {
           </View>
 
           <Text style={styles.hint}>
-            Pesa el saco completo antes de registrar. El peso se suma
-            automáticamente a la producción de la orden.
+            Verifica el peso del super saco antes de registrar. El peso
+            se suma automáticamente a la producción de la orden.
           </Text>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -319,7 +323,7 @@ function PrinterSheet({
 
 // ── Styles ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  body: { padding: 16, gap: 12 },
+  body: { padding: 16, gap: 12, paddingBottom: 80 },
 
   // ── Printer bar ──
   printerBar: {
@@ -400,6 +404,13 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   hint: { fontSize: 12, color: Colors.muted, lineHeight: 18, paddingHorizontal: 4 },
+  defaultHint: {
+    fontSize: 11,
+    color: Colors.sky[600],
+    fontWeight: '600',
+    marginTop: 6,
+    textAlign: 'center',
+  },
 
   // ── Sheet ──
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },

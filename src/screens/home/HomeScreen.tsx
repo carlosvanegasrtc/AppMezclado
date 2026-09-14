@@ -77,7 +77,7 @@ export function HomeScreen() {
           <View style={styles.divider} />
           <View style={styles.stat}>
             <Text style={styles.statValue}>{sacosTotales}</Text>
-            <Text style={styles.statLabel}>Sacos hoy</Text>
+            <Text style={styles.statLabel}>Super sacos hoy</Text>
           </View>
         </View>
       </GradientHeader>
@@ -95,7 +95,7 @@ export function HomeScreen() {
 
         <Animated.View entering={FadeInDown.delay(100).duration(380)}>
           <ActionCard
-            title="Escanear saco"
+            title="Escanear super saco"
             description="Lee un código de barras para registrar peso"
             icon={<ScanLine size={IconDefaults.size.lg} color={Colors.sky[700]} strokeWidth={2.2} />}
             onPress={() => stackNav?.navigate('Escaner', { mode: 'BARCODE_GENERIC' })}
@@ -104,8 +104,8 @@ export function HomeScreen() {
 
         <Animated.View entering={FadeInDown.delay(160).duration(380)}>
           <ActionCard
-            title="Sacos producidos"
-            description="Resumen de tus sacos del turno"
+            title="Super sacos producidos"
+            description="Resumen de tus super sacos del turno"
             icon={<Package size={IconDefaults.size.lg} color={Colors.amber[600]} strokeWidth={2.2} />}
             onPress={() => drawerNav.navigate('Ordenes')}
           />
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   divider: { width: 1, height: '60%', backgroundColor: 'rgba(255,255,255,0.18)' },
-  body: { padding: 16, gap: 12, marginTop: -8 },
+  body: { padding: 16, gap: 12, marginTop: -8, paddingBottom: 80 },
   actionCard: {
     flexDirection: 'row',
     gap: 14,

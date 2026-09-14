@@ -1,5 +1,5 @@
 /**
- * EscanerScreen — escáner full-screen para códigos de barras de sacos de mezcla.
+ * EscanerScreen — escáner full-screen para códigos de barras de super sacos de mezcla.
  *
  * Si fue invocado con `idOrdenProduccionMZCL` en params, navega a RegistrarSaco
  * con el código detectado. Si no, vuelve atrás con el código en params.
@@ -78,7 +78,7 @@ export function EscanerScreen() {
       <View style={styles.center}>
         <Text style={styles.permTitle}>Cámara requerida</Text>
         <Text style={styles.permDesc}>
-          Para escanear los códigos de los sacos necesitamos acceso a la cámara.
+          Para escanear los códigos de los super sacos necesitamos acceso a la cámara.
         </Text>
         <AppButton
           label="Permitir cámara"
@@ -129,7 +129,7 @@ export function EscanerScreen() {
         <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.iconBtn}>
           <X size={22} color={Colors.white} strokeWidth={2.4} />
         </Pressable>
-        <Text style={styles.title}>Escanear saco</Text>
+        <Text style={styles.title}>Escanear super saco</Text>
         <Pressable onPress={() => setTorch((t) => !t)} hitSlop={12} style={styles.iconBtn}>
           <Flashlight size={22} color={torch ? Colors.amber[400] : Colors.white} strokeWidth={2.4} />
         </Pressable>
@@ -158,11 +158,11 @@ export function EscanerScreen() {
         <View style={styles.modalRoot}>
           <View style={styles.modalCard}>
             <Text style={styles.modalTitle}>Ingresar código</Text>
-            <Text style={styles.modalDesc}>Escribe el código de barras del saco.</Text>
+            <Text style={styles.modalDesc}>Escribe el código de barras del super saco.</Text>
             <TextInput
               value={manualCode}
               onChangeText={setManualCode}
-              placeholder="Código del saco"
+              placeholder="Código del super saco"
               placeholderTextColor={Colors.hint}
               style={styles.modalInput}
               autoFocus
