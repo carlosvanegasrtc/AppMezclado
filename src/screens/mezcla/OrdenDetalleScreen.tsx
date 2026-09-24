@@ -260,7 +260,7 @@ export function OrdenDetalleScreen() {
                 <AppButton
                   label="Registrar super saco"
                   onPress={() =>
-                    navigation.navigate('RegistrarSaco', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
+                    navigation.navigate('Escaner', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
                   }
                   variant="primary"
                   size="lg"
