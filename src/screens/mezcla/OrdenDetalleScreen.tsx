@@ -348,6 +348,7 @@ export function OrdenDetalleScreen() {
             </Card>
 
           </Animated.View>
+
         )}
       </ScrollView>
     </Screen>
