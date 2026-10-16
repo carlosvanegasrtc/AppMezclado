@@ -81,7 +81,7 @@ export function OrdenDetalleScreen() {
   const orden = ordenes?.find((o) => o.IdOrdenProduccionMZCL === idOrdenProduccionMZCL);
   const { data: empleados } = useEmpleadosAsignados(idOrdenProduccionMZCL);
   const { data: componentes, isLoading: loadingComps } = useComponentesFormula(orden?.CodigoFormula);
-  const { data: solicitud } = useSolicitudPorPlanificacion(orden?.IdPlanificacionMezcla);
+  const { data: solicitud, refetch: refetchSolicitud } = useSolicitudPorPlanificacion(orden?.IdPlanificacionMezcla);
 
   const estado = String(orden?.Estado ?? '').toUpperCase();
   const finalizada = ['COMPLETADA', 'CANCELADA', 'INCOMPLETA'].includes(estado);
@@ -93,7 +93,10 @@ export function OrdenDetalleScreen() {
   const esperandoConfirmacion = !!solicitud && solicitud.Estado === 'DESPACHADO';
   const bloqueadoProduccion = finalizada || esperandoInsumos || esperandoConfirmacion;
 
-  const onRefresh = useCallback(() => refetch(), [refetch]);
+  const onRefresh = useCallback(() => {
+    refetch();
+    refetchSolicitud();
+  }, [refetch, refetchSolicitud]);
 
   const refreshBtn = (
     <Pressable
@@ -260,7 +263,7 @@ export function OrdenDetalleScreen() {
                 <AppButton
                   label="Registrar super saco"
                   onPress={() =>
-                    navigation.navigate('Escaner', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
+                    navigation.navigate('RegistrarSaco', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
                   }
                   variant="primary"
                   size="lg"

@@ -410,3 +410,30 @@
 {"_e":"metro:client_log","_t":1789410179703,"level":"log","data":["[TsplPrinter] module available:","false","| platform:","android"]}
 {"_e":"metro:client_log","_t":1789410181410,"level":"log","data":["[TsplPrinter] module available:","true","| platform:","android"]}
 {"_e":"metro:client_log","_t":1789410388975,"level":"warn","data":["InteractionManager has been deprecated and will be removed in a future release. Please refactor long tasks into smaller ones, and  use 'requestIdleCallback' instead."]}
+{"_e":"root:init","_t":1790746763850,"format":"v0-jsonl","version":"56.1.25"}
+{"_e":"env:mode","_t":1790746763856,"nodeEnv":"production","babelEnv":"production","mode":"production"}
+{"_e":"env:load","_t":1790746763880,"mode":"production","files":["../../../.env"],"env":{"EXPO_PUBLIC_API_BASE_PATH":"api","EXPO_PUBLIC_API_DOMAIN":"api.rototec.com.gt","EXPO_PUBLIC_API_PORT":"3001","EXPO_PUBLIC_API_PROTOCOL":"http","EXPO_PUBLIC_API_VERSION":"v2","EXPO_PUBLIC_CALIDAD_PREFIX":"production/calidad"}}
+{"_e":"devserver:start","_t":1790746765990,"mode":"production","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../../../app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1790746770001,"serverRoot":"../../..","projectRoot":"../../..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
+{"_e":"root:init","_t":1790746794464,"format":"v0-jsonl","version":"56.1.25"}
+{"_e":"env:mode","_t":1790746794469,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1790746794493,"mode":"development","files":["../../../.env"],"env":{"EXPO_PUBLIC_API_BASE_PATH":"api","EXPO_PUBLIC_API_DOMAIN":"api.rototec.com.gt","EXPO_PUBLIC_API_PORT":"3001","EXPO_PUBLIC_API_PROTOCOL":"http","EXPO_PUBLIC_API_VERSION":"v2","EXPO_PUBLIC_CALIDAD_PREFIX":"production/calidad"}}
+{"_e":"devserver:start","_t":1790746796282,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../../../app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1790746799364,"serverRoot":"../../..","projectRoot":"../../..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
+{"_e":"metro:instantiate","_t":1790746988615,"atlas":false,"workers":8,"host":"::","port":8081}
+{"_e":"metro:instantiate","_t":1790747019319,"atlas":false,"workers":8,"host":"::","port":8081}
+{"_e":"metro:bundling:started","_t":1790747291084,"id":"3","platform":"android","environment":null,"entry":"index.ts"}
+{"_e":"metro:bundling:done","_t":1790747357162,"id":"3","total":3349,"ms":66073.656879}
+{"_e":"metro:client_log","_t":1790747393715,"level":"log","data":["[TsplPrinter] module available:","false","| platform:","android"]}
+{"_e":"root:init","_t":1790758746059,"format":"v0-jsonl","version":"56.1.25"}
+{"_e":"env:mode","_t":1790758746061,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1790758746071,"mode":"development","files":["../../../.env"],"env":{"EXPO_PUBLIC_API_BASE_PATH":"api","EXPO_PUBLIC_API_DOMAIN":"api.rototec.com.gt","EXPO_PUBLIC_API_PORT":"3001","EXPO_PUBLIC_API_PROTOCOL":"http","EXPO_PUBLIC_API_VERSION":"v2","EXPO_PUBLIC_CALIDAD_PREFIX":"production/calidad"}}
+{"_e":"root:init","_t":1790758771629,"format":"v0-jsonl","version":"56.1.25"}
+{"_e":"env:mode","_t":1790758771630,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1790758771637,"mode":"development","files":["../../../.env"],"env":{"EXPO_PUBLIC_API_BASE_PATH":"api","EXPO_PUBLIC_API_DOMAIN":"api.rototec.com.gt","EXPO_PUBLIC_API_PORT":"3001","EXPO_PUBLIC_API_PROTOCOL":"http","EXPO_PUBLIC_API_VERSION":"v2","EXPO_PUBLIC_CALIDAD_PREFIX":"production/calidad"}}
+{"_e":"devserver:start","_t":1790758772249,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../../../app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1790758773371,"serverRoot":"../../..","projectRoot":"../../..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
+{"_e":"metro:instantiate","_t":1790758858615,"atlas":false,"workers":8,"host":"::","port":8082}
+{"_e":"metro:bundling:started","_t":1790758865321,"id":"4","platform":"android","environment":null,"entry":"index.ts"}
+{"_e":"metro:bundling:done","_t":1790758871601,"id":"4","total":3349,"ms":6279.655155}
+{"_e":"metro:client_log","_t":1790758894867,"level":"log","data":["[TsplPrinter] module available:","false","| platform:","android"]}

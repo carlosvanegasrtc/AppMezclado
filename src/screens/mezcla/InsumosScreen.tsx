@@ -5,6 +5,8 @@
  * Muestra la lista de componentes y, si está DESPACHADO, permite confirmar con PIN.
  */
 import React, { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { mezclaKeys } from '@hooks/useMezcla';
 import {
   ActivityIndicator,
   Alert,
@@ -45,6 +47,7 @@ export function InsumosScreen() {
   const route = useRoute<Route>();
   const { idSolicitud } = route.params;
   const session = useAuthStore((s) => s.session);
+  const qc = useQueryClient();
 
   const [detalle, setDetalle] = useState<DetalleSolicitudInsumos | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,6 +91,9 @@ export function InsumosScreen() {
                 observaciones: observaciones.trim() || undefined,
               });
               await cargarDetalle();
+              // Invalida la solicitud y las órdenes para que OrdenDetalleScreen
+              // muestre el estado CONFIRMADO al volver sin necesitar reiniciar la app
+              qc.invalidateQueries({ queryKey: mezclaKeys.all });
               Alert.alert('Éxito', 'Recepción confirmada correctamente');
             } catch (e: any) {
               Alert.alert('Error', e?.message ?? 'No se pudo confirmar la recepción');
