@@ -4,6 +4,7 @@
 import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -97,6 +98,36 @@ export function OrdenDetalleScreen() {
     refetch();
     refetchSolicitud();
   }, [refetch, refetchSolicitud]);
+
+  const onPressRegistrarSaco = useCallback(() => {
+    if (!orden) return;
+    const kgPlan = Number(orden.KgPlanificados ?? 0);
+    const kgProd = Number(orden.KgProducidos ?? 0);
+    if (kgPlan > 0 && kgProd >= kgPlan) {
+      Alert.alert(
+        'Meta de producción alcanzada',
+        `Ya produjiste ${kgProd.toFixed(1)} kg — ${Math.round((kgProd / kgPlan) * 100)}% de los ${kgPlan.toFixed(1)} kg planificados.\n\nProcede a completar la orden.`,
+        [
+          {
+            text: 'Completar orden',
+            onPress: () =>
+              navigation.navigate('CompletarOrden', {
+                idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL,
+              }),
+          },
+          { text: 'Registrar de todos modos', style: 'destructive',
+            onPress: () =>
+              navigation.navigate('RegistrarSaco', {
+                idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL,
+              }),
+          },
+          { text: 'Cancelar', style: 'cancel' },
+        ]
+      );
+      return;
+    }
+    navigation.navigate('RegistrarSaco', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL });
+  }, [orden, navigation]);
 
   const refreshBtn = (
     <Pressable
@@ -262,9 +293,7 @@ export function OrdenDetalleScreen() {
               {!finalizada && (
                 <AppButton
                   label="Registrar super saco"
-                  onPress={() =>
-                    navigation.navigate('RegistrarSaco', { idOrdenProduccionMZCL: orden.IdOrdenProduccionMZCL })
-                  }
+                  onPress={onPressRegistrarSaco}
                   variant="primary"
                   size="lg"
                   fullWidth
