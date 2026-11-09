@@ -264,7 +264,7 @@ export function OrdenDetalleScreen() {
               <View style={styles.bannerEspera}>
                 <Clock size={18} color={Colors.amber[700]} strokeWidth={2.4} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
-                  <Text style={styles.bannerTitulo}>Esperando despacho de bodega</Text>
+                  <Text style={styles.bannerTitulo}>Esperando despacho de Ibodega</Text>
                   <Text style={styles.bannerSub}>
                     Bodega debe despachar los insumos antes de iniciar la producción.
                   </Text>

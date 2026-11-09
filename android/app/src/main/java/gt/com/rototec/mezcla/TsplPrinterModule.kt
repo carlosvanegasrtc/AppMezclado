@@ -155,6 +155,7 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
   //   y=2..131  BITMAP barcode 394 px wide, 6 px margin each side → x=6
   //   y=138     TEXT codigo   (font2, 12 dots/char, centrado)
   //   y=162     TEXT formula+peso (font3, 16 dots/char, centrado)
+  //   y=188     TEXT fecha (font1, 8 dots/char, centrado) — 12 dots alto, termina en y=200
   private fun buildTspl(
     codigo: String, formula: String, pesoKg: Double,
   ): ByteArray {
@@ -188,11 +189,14 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
     }
 
     // Text centering helpers
+    fun cx1(t: String) = maxOf(0, (LABEL_W - t.length * 8)  / 2)
     fun cx2(t: String) = maxOf(0, (LABEL_W - t.length * 12) / 2)
     fun cx3(t: String) = maxOf(0, (LABEL_W - t.length * 16) / 2)
 
     val pesoStr  = String.format(java.util.Locale.US, "%.2f kg", pesoKg)
     val mainLine = "$formula   $pesoStr"
+    val dateStr  = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
+                     .format(java.util.Date())
 
     // Build TSPL command string (header + text commands)
     val sb = StringBuilder()
@@ -211,6 +215,7 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
     fun tcmd(s: String) { textCmds.append(s).append("\r\n") }
     tcmd("TEXT ${cx2(codigo)},138,\"2\",0,1,1,\"$codigo\"")
     tcmd("TEXT ${cx3(mainLine)},162,\"3\",0,1,1,\"$mainLine\"")
+    tcmd("TEXT ${cx1(dateStr)},188,\"1\",0,1,1,\"$dateStr\"")
     tcmd("PRINT 1,1")
 
     // Assemble: header bytes + bitmap binary + CRLF + text commands
