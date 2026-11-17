@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Save, Printer, ChevronRight, X, CheckCircle2, Circle, AlertTriangle, WifiOff } from 'lucide-react-native';
+import { Save, Printer, ChevronRight, X, CheckCircle2, Circle, AlertTriangle, WifiOff, Settings } from 'lucide-react-native';
 import { AppBar }    from '@components/ui/AppBar';
 import { Card }      from '@components/ui/Card';
 import { Screen }    from '@components/ui/Screen';
@@ -25,6 +25,9 @@ import { useAuthStore }     from '@store/authStore';
 import { useRegistrarSaco } from '@hooks/useMezcla';
 import { useHaptics }       from '@hooks/useHaptics';
 import { useTsplPrinter, type PrinterStatus } from '@hooks/useTsplPrinter';
+import { useLabelSettingsStore } from '@store/labelSettingsStore';
+import { LabelSettingsSheet } from '@components/printer/LabelSettingsSheet';
+import { getLabelSize } from '@config/labelSizes';
 import { normalizeError }   from '@utils/networkError';
 import type { AppStackParamList } from '@navigation/types';
 import type { BtDevice }          from '@native/TsplPrinter';
@@ -63,6 +66,10 @@ export function RegistrarSacoScreen() {
 
   const [pesoStr,      setPesoStr]      = useState('1000');
   const [sheetVisible, setSheetVisible] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+
+  const labelSize    = useLabelSettingsStore((s) => s.labelSize);
+  const setLabelSize = useLabelSettingsStore((s) => s.setLabelSize);
 
   const printerReady       = printer.status !== 'none';
   const printerDisconnected = printer.status === 'disconnected';
@@ -107,6 +114,7 @@ export function RegistrarSacoScreen() {
       await printer.print({
         codigo:  saco.codigoBarra,
         formula: saco.codigoFormula,
+        labelSize,
       });
       haptics.success();
     } catch (err) {
@@ -128,7 +136,23 @@ export function RegistrarSacoScreen() {
   // ── Render ─────────────────────────────────────────────────────────
   return (
     <Screen edges={['top']} bg={Colors.slate[50]}>
-      <AppBar title="Registrar super saco" onBack={() => navigation.goBack()} />
+      <AppBar
+        title="Registrar super saco"
+        subtitle={`Etiqueta ${getLabelSize(labelSize).nombre}`}
+        onBack={() => navigation.goBack()}
+        right={
+          <Pressable
+            onPress={() => setSettingsVisible(true)}
+            hitSlop={10}
+            style={styles.settingsBtn}
+            android_ripple={{ color: 'rgba(0,0,0,0.06)', borderless: true }}
+            accessibilityRole="button"
+            accessibilityLabel="Configuración de impresión"
+          >
+            <Settings size={22} color={Colors.foreground} strokeWidth={2.2} />
+          </Pressable>
+        }
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -215,6 +239,14 @@ export function RegistrarSacoScreen() {
         loading={printer.loadingDevices}
         currentMac={printer.savedDevice?.mac}
         onSelect={onSelectDevice}
+      />
+
+      {/* ─ Configuración: tamaño de etiqueta ─ */}
+      <LabelSettingsSheet
+        visible={settingsVisible}
+        selected={labelSize}
+        onSelect={(size) => { setLabelSize(size); setSettingsVisible(false); haptics.selection(); }}
+        onClose={() => setSettingsVisible(false)}
       />
     </Screen>
   );
@@ -323,6 +355,7 @@ function PrinterSheet({
 // ── Styles ────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   body: { padding: 16, gap: 12, paddingBottom: 80 },
+  settingsBtn: { padding: 8, borderRadius: 12 },
 
   // ── Printer bar ──
   printerBar: {

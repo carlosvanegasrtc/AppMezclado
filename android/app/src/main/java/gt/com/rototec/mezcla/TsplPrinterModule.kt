@@ -10,9 +10,8 @@ import android.os.Build
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.*
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.EncodeHintType
-import com.google.zxing.oned.Code128Writer
+import gt.com.rototec.mezcla.label.LabelContent
+import gt.com.rototec.mezcla.label.LabelLayoutFactory
 import java.io.IOException
 import java.io.OutputStream
 import java.util.UUID
@@ -131,13 +130,17 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
       val out = outputStream
         ?: return promise.reject("NOT_CONNECTED", "Impresora no conectada")
 
-      val codigo  = data.getString("codigo")  ?: ""
-      val formula = data.getString("formula") ?: ""
+      val content = LabelContent(
+        codigo  = data.getString("codigo")  ?: "",
+        formula = data.getString("formula") ?: "",
+      )
+      val sizeId = if (data.hasKey("labelSize")) data.getString("labelSize") else null
+      val layout = LabelLayoutFactory.forId(sizeId)
 
-      val tspl = buildTspl(codigo, formula)
+      val tspl = layout.render(content)
       out.write(tspl)
       out.flush()
-      Log.d(TAG, "Etiqueta enviada: $codigo (${tspl.size} bytes)")
+      Log.d(TAG, "Etiqueta ${layout.size.id} enviada: ${content.codigo} (${tspl.size} bytes)")
       promise.resolve(true)
     } catch (e: IOException) {
       closeSocket()
@@ -147,92 +150,8 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
     }
   }
 
-  // ── TSPL builder ──────────────────────────────────────────────────────
-  // 2" × 1" @ 203 DPI = 406 × 203 dots
-  // Barcode: ZXing Code128 rendered as raw pixels via TSPL BITMAP — printer never scales it.
-  // Layout (dots):
-  //   y=2..131  BITMAP barcode 394 px wide, 6 px margin each side → x=6
-  //   y=138     TEXT codigo   (font2, 12 dots/char, centrado)
-  //   y=162     TEXT formula + fecha/hora de impresión (font3, 16 dots/char, centrado)
-  //             Si no cabe en font3 (máx 25 chars) se usa font2 (12 dots/char, máx 33 chars).
-  //             Si tampoco cabe: formula en y=162 (font3) y fecha/hora en y=188 (font1, termina en y=200).
-  private fun buildTspl(
-    codigo: String, formula: String,
-  ): ByteArray {
-    val LABEL_W    = 406
-    val BAR_W      = 394          // usable barcode pixels (6 px quiet margin each side)
-    val BAR_H      = 130          // bar height in dots
-    val BAR_X      = (LABEL_W - BAR_W) / 2   // = 6
-
-    // ZXing Code128 → BitMatrix exactly BAR_W wide with zero internal quiet-zone margin
-    val hints = mapOf(EncodeHintType.MARGIN to 0)
-    val matrix = Code128Writer().encode(codigo, BarcodeFormat.CODE_128, BAR_W, 1, hints)
-    val matrixW = matrix.width   // actual rendered width (≤ BAR_W)
-
-    // Center matrix within BAR_W if ZXing returned fewer pixels
-    val offsetX = (BAR_W - matrixW) / 2
-
-    // Build raw bitmap: BAR_H rows × ceil(BAR_W/8) bytes each, MSB-first.
-    // This printer interprets bit=0 as DARK and bit=1 as LIGHT (inverted convention).
-    // Init to 0xFF (all white), then CLEAR bits for black bar pixels.
-    val rowBytes = (BAR_W + 7) / 8    // = 50 bytes (400 bits, 6 padding bits on right → stay 1 = white)
-    val bitmapData = ByteArray(BAR_H * rowBytes) { 0xFF.toByte() }
-    for (row in 0 until BAR_H) {
-      for (px in 0 until matrixW) {
-        if (matrix.get(px, 0)) {   // dark (black) pixel from ZXing
-          val col = px + offsetX
-          val byteIdx = row * rowBytes + col / 8
-          val bitMask = (0x80 shr (col % 8))
-          bitmapData[byteIdx] = (bitmapData[byteIdx].toInt() and bitMask.inv()).toByte()
-        }
-      }
-    }
-
-    // Text centering helpers
-    fun cx1(t: String) = maxOf(0, (LABEL_W - t.length * 8)  / 2)
-    fun cx2(t: String) = maxOf(0, (LABEL_W - t.length * 12) / 2)
-    fun cx3(t: String) = maxOf(0, (LABEL_W - t.length * 16) / 2)
-
-    // Fecha y hora del momento de impresión (hora local del dispositivo, 24h)
-    val fechaHora = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.US)
-                      .format(java.util.Date())
-    val mainLine  = "$formula   $fechaHora"
-
-    // Build TSPL command string (header + text commands)
-    val sb = StringBuilder()
-    fun cmd(s: String) { sb.append(s).append("\r\n") }
-
-    cmd("SIZE 2 inch, 1 inch")
-    cmd("GAP 0.12 inch, 0")
-    cmd("DIRECTION 0")
-    cmd("CLS")
-    // BITMAP x,y,width_bytes,height,mode — mode 0 = overwrite
-    sb.append("BITMAP $BAR_X,2,$rowBytes,$BAR_H,0,")
-    // Inline binary data follows immediately after the comma (no CRLF before data)
-
-    // TEXT lines
-    val textCmds = StringBuilder()
-    fun tcmd(s: String) { textCmds.append(s).append("\r\n") }
-    tcmd("TEXT ${cx2(codigo)},138,\"2\",0,1,1,\"$codigo\"")
-    when {
-      mainLine.length * 16 <= LABEL_W ->
-        tcmd("TEXT ${cx3(mainLine)},162,\"3\",0,1,1,\"$mainLine\"")
-      mainLine.length * 12 <= LABEL_W ->
-        tcmd("TEXT ${cx2(mainLine)},164,\"2\",0,1,1,\"$mainLine\"")
-      else -> {
-        tcmd("TEXT ${cx3(formula)},162,\"3\",0,1,1,\"$formula\"")
-        tcmd("TEXT ${cx1(fechaHora)},188,\"1\",0,1,1,\"$fechaHora\"")
-      }
-    }
-    tcmd("PRINT 1,1")
-
-    // Assemble: header bytes + bitmap binary + CRLF + text commands
-    val header    = sb.toString().toByteArray(Charsets.ISO_8859_1)
-    val textBytes = textCmds.toString().toByteArray(Charsets.ISO_8859_1)
-    val crlf      = "\r\n".toByteArray(Charsets.ISO_8859_1)
-
-    return header + bitmapData + crlf + textBytes
-  }
+  // El armado TSPL vive en el paquete `label` (un LabelLayout por tamaño).
+  // Este módulo solo se encarga del puente con JS y del transporte Bluetooth.
 
   // ── RFCOMM fallback ────────────────────────────────────────────────────
   private fun connectWithFallback(device: BluetoothDevice): BluetoothSocket {

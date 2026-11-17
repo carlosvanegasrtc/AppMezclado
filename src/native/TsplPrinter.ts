@@ -1,8 +1,11 @@
 import { NativeModules, Platform } from 'react-native';
+import type { LabelSizeId } from '@config/labelSizes';
 
 export interface TsplLabelData {
   codigo: string;
   formula: string;
+  /** Tamaño de etiqueta; si se omite, el nativo usa 2x1. */
+  labelSize?: LabelSizeId;
   // La fecha/hora de impresión la genera el módulo nativo al momento de imprimir.
 }
 
