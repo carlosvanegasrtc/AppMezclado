@@ -133,9 +133,8 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
 
       val codigo  = data.getString("codigo")  ?: ""
       val formula = data.getString("formula") ?: ""
-      val pesoKg  = data.getDouble("pesoKg")
 
-      val tspl = buildTspl(codigo, formula, pesoKg)
+      val tspl = buildTspl(codigo, formula)
       out.write(tspl)
       out.flush()
       Log.d(TAG, "Etiqueta enviada: $codigo (${tspl.size} bytes)")
@@ -154,10 +153,11 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
   // Layout (dots):
   //   y=2..131  BITMAP barcode 394 px wide, 6 px margin each side → x=6
   //   y=138     TEXT codigo   (font2, 12 dots/char, centrado)
-  //   y=162     TEXT formula+peso (font3, 16 dots/char, centrado)
-  //   y=188     TEXT fecha (font1, 8 dots/char, centrado) — 12 dots alto, termina en y=200
+  //   y=162     TEXT formula + fecha/hora de impresión (font3, 16 dots/char, centrado)
+  //             Si no cabe en font3 (máx 25 chars) se usa font2 (12 dots/char, máx 33 chars).
+  //             Si tampoco cabe: formula en y=162 (font3) y fecha/hora en y=188 (font1, termina en y=200).
   private fun buildTspl(
-    codigo: String, formula: String, pesoKg: Double,
+    codigo: String, formula: String,
   ): ByteArray {
     val LABEL_W    = 406
     val BAR_W      = 394          // usable barcode pixels (6 px quiet margin each side)
@@ -193,10 +193,10 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
     fun cx2(t: String) = maxOf(0, (LABEL_W - t.length * 12) / 2)
     fun cx3(t: String) = maxOf(0, (LABEL_W - t.length * 16) / 2)
 
-    val pesoStr  = String.format(java.util.Locale.US, "%.2f kg", pesoKg)
-    val mainLine = "$formula   $pesoStr"
-    val dateStr  = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault())
-                     .format(java.util.Date())
+    // Fecha y hora del momento de impresión (hora local del dispositivo, 24h)
+    val fechaHora = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm", java.util.Locale.US)
+                      .format(java.util.Date())
+    val mainLine  = "$formula   $fechaHora"
 
     // Build TSPL command string (header + text commands)
     val sb = StringBuilder()
@@ -214,8 +214,16 @@ class TsplPrinterModule(private val ctx: ReactApplicationContext) :
     val textCmds = StringBuilder()
     fun tcmd(s: String) { textCmds.append(s).append("\r\n") }
     tcmd("TEXT ${cx2(codigo)},138,\"2\",0,1,1,\"$codigo\"")
-    tcmd("TEXT ${cx3(mainLine)},162,\"3\",0,1,1,\"$mainLine\"")
-    tcmd("TEXT ${cx1(dateStr)},188,\"1\",0,1,1,\"$dateStr\"")
+    when {
+      mainLine.length * 16 <= LABEL_W ->
+        tcmd("TEXT ${cx3(mainLine)},162,\"3\",0,1,1,\"$mainLine\"")
+      mainLine.length * 12 <= LABEL_W ->
+        tcmd("TEXT ${cx2(mainLine)},164,\"2\",0,1,1,\"$mainLine\"")
+      else -> {
+        tcmd("TEXT ${cx3(formula)},162,\"3\",0,1,1,\"$formula\"")
+        tcmd("TEXT ${cx1(fechaHora)},188,\"1\",0,1,1,\"$fechaHora\"")
+      }
+    }
     tcmd("PRINT 1,1")
 
     // Assemble: header bytes + bitmap binary + CRLF + text commands

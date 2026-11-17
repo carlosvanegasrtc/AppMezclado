@@ -107,7 +107,6 @@ export function RegistrarSacoScreen() {
       await printer.print({
         codigo:  saco.codigoBarra,
         formula: saco.codigoFormula,
-        pesoKg:  saco.pesoKg,
       });
       haptics.success();
     } catch (err) {

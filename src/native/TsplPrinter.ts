@@ -3,7 +3,7 @@ import { NativeModules, Platform } from 'react-native';
 export interface TsplLabelData {
   codigo: string;
   formula: string;
-  pesoKg: number;
+  // La fecha/hora de impresión la genera el módulo nativo al momento de imprimir.
 }
 
 export interface BtDevice {

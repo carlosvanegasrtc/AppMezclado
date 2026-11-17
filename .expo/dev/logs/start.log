@@ -437,3 +437,10 @@
 {"_e":"metro:bundling:started","_t":1790758865321,"id":"4","platform":"android","environment":null,"entry":"index.ts"}
 {"_e":"metro:bundling:done","_t":1790758871601,"id":"4","total":3349,"ms":6279.655155}
 {"_e":"metro:client_log","_t":1790758894867,"level":"log","data":["[TsplPrinter] module available:","false","| platform:","android"]}
+{"_e":"root:init","_t":1794200964277,"format":"v0-jsonl","version":"56.1.25"}
+{"_e":"env:mode","_t":1794200964280,"nodeEnv":"development","babelEnv":"development","mode":"development"}
+{"_e":"env:load","_t":1794200964295,"mode":"development","files":["../../../.env"],"env":{"EXPO_PUBLIC_API_BASE_PATH":"api","EXPO_PUBLIC_API_DOMAIN":"api.rototec.com.gt","EXPO_PUBLIC_API_PORT":"3001","EXPO_PUBLIC_API_PROTOCOL":"http","EXPO_PUBLIC_API_VERSION":"v2","EXPO_PUBLIC_CALIDAD_PREFIX":"production/calidad"}}
+{"_e":"devserver:start","_t":1794200965694,"mode":"development","web":true,"baseUrl":"","asyncRoutes":false,"routerRoot":"../../../app","serverComponents":false,"serverActions":false,"serverRendering":false,"apiRoutes":false,"exporting":false}
+{"_e":"metro:config","_t":1794200968109,"serverRoot":"../../..","projectRoot":"../../..","exporting":false,"flags":{"autolinkingModuleResolution":false,"serverActions":false,"serverComponents":false,"reactCompiler":false,"optimizeGraph":false,"treeshaking":false,"logbox":false}}
+{"_e":"metro:instantiate","_t":1794201111801,"atlas":false,"workers":8,"host":"::","port":8081}
+{"_e":"metro:client_log","_t":1794201133748,"level":"error","data":["Project is incompatible with this version of Expo Go\n\n• The installed version of Expo Go is for SDK 58.\n• The project you opened uses SDK 56.\n\nHow to fix this error:\nEither upgrade this project to SDK 58 or install an older version of Expo Go that is compatible with your project.\n\n<a href='https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/'>Learn how to upgrade to SDK 58.</a>\n\n<a href='https://expo.dev/go?sdkVersion=56&platform=android&device=true'>Learn how to install Expo Go for SDK 56</a>."]}
